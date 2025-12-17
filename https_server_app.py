@@ -1,5 +1,5 @@
 import http.server
-
+import ssl
 
 class HandleRequests(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -10,5 +10,11 @@ class HandleRequests(http.server.BaseHTTPRequestHandler):
         self.wfile.close
 
 if __name__ == "__main__":
-    server = http.server.HTTPServer(('0.0.0.0', 5000), HandleRequests)
-    server.serve_forever()
+    httpd = http.server.HTTPServer(('localhost', 5000), HandleRequests)
+
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+
+    httpd.socket = ssl_context.wrap_socket(httpd.socket, server_side=True)
+
+    httpd.serve_forever()
